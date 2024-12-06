@@ -1,0 +1,88 @@
+/*
+* The Typekit service used to deliver this font or fonts for use on websites
+* is provided by Adobe and is subject to these Terms of Use
+* http://www.adobe.com/products/eulas/tou_typekit. For font license
+* information, see the list below.
+*
+* acumin-pro-condensed:
+*   - http://typekit.com/eulas/00000000000000003b9acb0e
+* neue-haas-grotesk-display:
+*   - http://typekit.com/eulas/00000000000000007735bb5a
+*   - http://typekit.com/eulas/00000000000000007735bb62
+*   - http://typekit.com/eulas/00000000000000007735bb6e
+* open-sans:
+*   - http://typekit.com/eulas/00000000000000007735a07a
+*
+* © 2009-2021 Adobe Systems Incorporated. All Rights Reserved.
+*/
+/*{"last_published":"2021-06-08 18:05:09 UTC"}*/
+
+@import url("https://p.typekit.net/p.css?s=1&k=eqp8web&ht=tk&f=14548.25998.39496.39498.39502&a=49665675&app=typekit&e=css");
+
+@font-face {
+	font-family:"open-sans";
+	src:url("https://use.typekit.net/af/f18587/00000000000000007735a07a/30/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff2"),url("https://use.typekit.net/af/f18587/00000000000000007735a07a/30/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff"),url("https://use.typekit.net/af/f18587/00000000000000007735a07a/30/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("opentype");
+	font-display:auto;
+	font-style:normal;
+	font-weight:400;
+}
+
+@font-face {
+	font-family:"acumin-pro-condensed";
+	src:url("https://use.typekit.net/af/69b3c5/00000000000000003b9acb0e/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"),url("https://use.typekit.net/af/69b3c5/00000000000000003b9acb0e/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"),url("https://use.typekit.net/af/69b3c5/00000000000000003b9acb0e/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+	font-display:auto;
+	font-style:normal;
+	font-weight:700;
+}
+
+@font-face {
+	font-family:"neue-haas-grotesk-display";
+	src:url("https://use.typekit.net/af/1ba16c/00000000000000007735bb5a/30/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n5&v=3") format("woff2"),url("https://use.typekit.net/af/1ba16c/00000000000000007735bb5a/30/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n5&v=3") format("woff"),url("https://use.typekit.net/af/1ba16c/00000000000000007735bb5a/30/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n5&v=3") format("opentype");
+	font-display:auto;
+	font-style:normal;
+	font-weight:500;
+}
+
+@font-face {
+	font-family:"neue-haas-grotesk-display";
+	src:url("https://use.typekit.net/af/153042/00000000000000007735bb62/30/l?subset_id=2&fvd=n6&v=3") format("woff2"),url("https://use.typekit.net/af/153042/00000000000000007735bb62/30/d?subset_id=2&fvd=n6&v=3") format("woff"),url("https://use.typekit.net/af/153042/00000000000000007735bb62/30/a?subset_id=2&fvd=n6&v=3") format("opentype");
+	font-display:auto;
+	font-style:normal;
+	font-weight:600;
+}
+
+@font-face {
+	font-family:"neue-haas-grotesk-display";
+	src:url("https://use.typekit.net/af/c906c2/00000000000000007735bb6e/30/l?subset_id=2&fvd=n9&v=3") format("woff2"),url("https://use.typekit.net/af/c906c2/00000000000000007735bb6e/30/d?subset_id=2&fvd=n9&v=3") format("woff"),url("https://use.typekit.net/af/c906c2/00000000000000007735bb6e/30/a?subset_id=2&fvd=n9&v=3") format("opentype");
+	font-display:auto;
+	font-style:normal;
+	font-weight:900;
+}
+
+.tk-open-sans { font-family: "open-sans",sans-serif; }
+.tk-acumin-pro-condensed { font-family: "acumin-pro-condensed",sans-serif; }
+.tk-neue-haas-grotesk-display { font-family: "neue-haas-grotesk-display",sans-serif; }
+
+@font-face {
+	font-family: 'Fletcha S';
+	src: url( 'https://subscriptions-static.pmc.com/billboard/fonts/FlechaTestS-Black.otf' ) format( 'opentype' );
+	font-style: normal;
+	font-weight: 900;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Fletcha S';
+	src: url( 'https://subscriptions-static.pmc.com/billboard/fonts/FlechaTestS-Medium.otf' ) format( 'opentype' );
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+}
+
+body {
+	--font-family-primary: var(--font-family-primary-fancy);
+	--font-family-secondary: var(--font-family-secondary-fancy);
+	--font-family-body: var(--font-family-body-fancy);
+	--font-family-basic: var(--font-family-basic-fancy);
+	--font-family-accent: var(--font-family-accent-fancy);
+}

@@ -1,0 +1,749 @@
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+    <style>
+      html,
+      body,
+      .ad-element {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        overflow: hidden;
+      }
+    </style>
+    <style>
+      .cnx-ad-slot {
+        width: 100%;
+        height: 100%;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .cnx-ad-slot div {
+        background-color: transparent !important;
+      }
+
+      .cnx-ad-video-slot {
+        width: 100%;
+        height: 100%;
+        background-color: #f4f4f4;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="ad-element" id="cnx-ad-element"><video class="cnx-ad-slot cnx-ad-video-slot" playsinline="" webkit-playsinline="" muted="muted" aria-label="Advertisement" style="cursor: pointer;" src="cnx_data/55554f8e-ad7e-4064-aedd-1ecc84dc7c38_1280x720x3500x23_.mp4"></video><div class="cnx-ad-slot" style="cursor: pointer; width: 100%; height: 100%; position: absolute; z-index: 100;" data-integralas-vid-142234c7022e49aefd8f86b56b185bd6="" data-integralas-id-33c26c6a-5536-7120-5792-296d01a1996b=""></div><script src="cnx_data/skeleton.js"></script></div>
+
+    <script type="text/javascript">
+      "use strict";
+      (function () {
+        var source = null;
+        var origin = null;
+        var cnxIframeId = null;
+
+        var vpaidObject = null;
+        var adContainer = null;
+        var videoSlot = null;
+        var adSlot = null;
+
+        var rendererIframeWindow = null;
+
+        var subscriptions = [];
+
+        var blockedVpaidEvents = new Set();
+        var receivedVpaidEvents = new Set();
+
+        // Enforcer variables
+        var muteEnforcePaused = true;
+        var enforcedTags = [];
+        var VIDEO_HANDLED_ATTRIBUTE = "cnxpl-vl";
+        var enforceIntervalId = null;
+
+        try {
+          function sendMessage(type, payload) {
+            var message = {
+              type: type,
+              cnxIframeId: cnxIframeId,
+            };
+            if (payload) {
+              message.payload = payload;
+            }
+
+            source.postMessage(message, origin);
+          }
+
+          // #region ENFORCER
+          var muteEnforce = (event) => {
+            if (muteEnforcePaused) {
+              return;
+            }
+            const $videoTag = event.target;
+            if ($videoTag.volume > 0) {
+              $videoTag.volume = 0;
+            }
+            if (event.preventDefault) {
+              event.preventDefault();
+            } else {
+              event.returnValue = false;
+            }
+          };
+
+          function convertIteratorToArray(iterator) {
+            return [].slice.call(iterator);
+          }
+          function isIframe($container) {
+            try {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              if ($container.contentWindow || $container.contentDocument) {
+                return true;
+              }
+            } catch (error) {}
+            return false;
+          }
+
+          function bindMuteEnforceOnVideoTag($videoTag) {
+            if ($videoTag && !$videoTag.getAttribute(VIDEO_HANDLED_ATTRIBUTE)) {
+              // Set volume to 0 first
+              $videoTag.volume = 0;
+
+              $videoTag.setAttribute(VIDEO_HANDLED_ATTRIBUTE, "true");
+              $videoTag.addEventListener("volumechange", muteEnforce);
+              enforcedTags.push($videoTag);
+            }
+          }
+
+          function enforceMute($container) {
+            let $domElement = $container;
+            if (isIframe($container)) {
+              $domElement =
+                $container.contentDocument || $container.contentWindow.document;
+            }
+            muteEnforcePaused = false;
+            const videoTags = convertIteratorToArray(
+              $domElement.getElementsByTagName("video")
+            );
+            videoTags.forEach(($video) => {
+              bindMuteEnforceOnVideoTag($video);
+            });
+          }
+
+          function doRecursiveEnforce($container) {
+            if (!$container) {
+              return;
+            }
+            const iframes = convertIteratorToArray(
+              $container.getElementsByTagName("iframe")
+            );
+
+            iframes.forEach(($frame) => {
+              try {
+                doRecursiveEnforce($frame);
+              } catch (e) {}
+            });
+
+            enforceMute($container);
+          }
+
+          function startMuteEnforcer() {
+            enforceIntervalId = setInterval(() => {
+              doRecursiveEnforce(adContainer);
+            }, 300);
+          }
+
+          function stopMuteEnforcer() {
+            muteEnforcePaused = true;
+          }
+
+          function clearMuteEnforce() {
+            clearInterval(enforceIntervalId);
+            try {
+              enforcedTags.forEach(($videoTag) => {
+                $videoTag.removeAttribute(VIDEO_HANDLED_ATTRIBUTE);
+                $videoTag.removeEventListener("volumechange", muteEnforce);
+              });
+              // eslint-disable-next-line id-denylist
+            } catch (e) {}
+          }
+
+          // #endregion
+
+          function onWindowClick(event) {
+            try {
+              if (event.isTrusted) {
+                sendMessage("IframeUserInteraction");
+                event.view.removeEventListener("click", onWindowClick, true);
+              }
+            } catch (e) {}
+          }
+
+          function onAddedNodeClickCheck(node) {
+            // Check if the added node is an IFRAME
+            if (node.tagName === "IFRAME") {
+              node.onload = function () {
+                try {
+                  node.contentWindow.addEventListener(
+                    "click",
+                    onWindowClick,
+                    true
+                  );
+                } catch (e) {}
+              };
+            }
+          }
+
+          function mutationCallback(mutationsList, observer) {
+            try {
+              for (var i = 0; i < mutationsList.length; i++) {
+                if (mutationsList[i].type === "childList") {
+                  mutationsList[i].addedNodes.forEach(onAddedNodeClickCheck);
+                }
+              }
+            } catch (e) {}
+          }
+
+          function createIframeMutationObserver(htmlElement) {
+            if (!htmlElement) {
+              return;
+            }
+            // Create a mutation observer instance
+            const observer = new MutationObserver(mutationCallback);
+
+            // Options for the observer (which mutations to observe)
+            const config = { childList: true, subtree: true };
+
+            // Start observing the document body for DOM mutations
+            observer.observe(htmlElement, config);
+          }
+
+          function checkIfVpaidrotocolValid(
+            vpaidObject,
+            mandatoryVpaidMethodNameList
+          ) {
+            var isValid = true;
+            mandatoryVpaidMethodNameList.forEach(function (
+              mandatoryVpaidMethodName
+            ) {
+              if (typeof vpaidObject[mandatoryVpaidMethodName] !== "function") {
+                isValid = false;
+              }
+            });
+
+            return isValid;
+          }
+
+          function isRealObject(obj) {
+            return (
+              typeof obj === "object" && obj !== null && !Array.isArray(obj)
+            );
+          }
+
+          function iosUnfreezeVideo(video) {
+            setTimeout(function () {
+              var desiredTime = video.currentTime + 0.01;
+              if (desiredTime > video.duration) {
+                desiredTime = 0.01;
+              }
+              video.currentTime = desiredTime;
+            }, 0);
+          }
+
+          function onTimeUpdate() {
+            sendMessage("AdRemainingTimeChange", {
+              adRemainingTime: videoSlot.duration - videoSlot.currentTime,
+            });
+          }
+
+          function handleThirdPartyVpaidEvent(type, data) {
+            receivedVpaidEvents.add(type);
+            if (blockedVpaidEvents.has(type)) {
+              return;
+            }
+            if (
+              type === "AdImpression" &&
+              !receivedVpaidEvents.has("AdLoaded")
+            ) {
+              sendMessage("impressionBeforeAdLoaded");
+
+              blockedVpaidEvents.add("AdLoaded");
+
+              dispatchVpaidEvent("AdLoaded", data);
+              return;
+            }
+            dispatchVpaidEvent(type, data);
+          }
+
+          function dispatchVpaidEvent(type, data) {
+            switch (type) {
+              case "AdError": {
+                sendMessage("AdError", data);
+                break;
+              }
+              case "AdLoaded": {
+                try {
+                  var currentAdDuration = vpaidObject.getAdDuration();
+                  if (!isRealObject(data)) {
+                    data = {};
+                  }
+                  data.adDuration = currentAdDuration;
+                } catch (e) {}
+
+                sendMessage("AdLoaded", data);
+                break;
+              }
+              case "AdImpression": {
+                try {
+                  var currentAdDuration = vpaidObject.getAdDuration();
+                  if (!isRealObject(data)) {
+                    data = {};
+                  }
+                  data.adDuration = currentAdDuration;
+                } catch (e) {}
+
+                sendMessage("AdImpression", data);
+                break;
+              }
+              case "AdClickThru": {
+                sendMessage("AdClickThru", data);
+                break;
+              }
+              case "AdVolumeChange": {
+                if (vpaidObject) {
+                  var adVolume = vpaidObject.getAdVolume();
+                  sendMessage(type, {
+                    adVolume: adVolume,
+                  });
+                }
+                break;
+              }
+              case "AdDurationChange": {
+                if (vpaidObject) {
+                  var adDuration = vpaidObject.getAdDuration();
+                  sendMessage(type, {
+                    adDuration: adDuration,
+                  });
+                }
+                break;
+              }
+              case "AdRemainingTimeChange": {
+                if (vpaidObject) {
+                  var adRemainingTime = vpaidObject.getAdRemainingTime();
+                  sendMessage(type, {
+                    adRemainingTime: adRemainingTime,
+                  });
+                }
+                break;
+              }
+              default: {
+                sendMessage(type, data);
+              }
+            }
+          }
+
+          function clickThroughHandler(url, id, playerHandles) {
+            var clickThruData = {
+              url: url,
+              playerHandles: playerHandles,
+            };
+            handleThirdPartyVpaidEvent("AdClickThru", clickThruData);
+          }
+
+          function subscribeToVpaidEvents(subscribeToVpaidEventNameList) {
+            subscribeToVpaidEventNameList.forEach(function (vpaidEventName) {
+              var callback = handleThirdPartyVpaidEvent.bind(
+                this,
+                vpaidEventName
+              );
+              if (vpaidEventName === "AdClickThru") {
+                callback = clickThroughHandler;
+              }
+
+              subscriptions.push({
+                handler: callback,
+                event: vpaidEventName,
+              });
+
+              // CHECK with this as third param
+              vpaidObject.subscribe(callback, vpaidEventName);
+            });
+          }
+
+          function unsubscribeFromVpaidEvents() {
+            subscriptions.forEach(function (subscription) {
+              vpaidObject.unsubscribe(subscription.handler, subscription.event);
+            });
+            subscriptions = [];
+          }
+
+          function destroy() {
+            try {
+              window.removeEventListener("message", onWindowMessage);
+              window.removeEventListener("click", onWindowClick, true);
+              window.removeEventListener(
+                "unhandledrejection",
+                onUnhandledRejection
+              );
+
+              videoSlot.removeEventListener("timeupdate", onTimeUpdate);
+              // Clear enforcer bindings and timeout
+              clearMuteEnforce();
+
+              videoSlot = null;
+              adSlot = null;
+              adContainer = null;
+
+              if (vpaidObject) {
+                unsubscribeFromVpaidEvents();
+                vpaidObject = null;
+              }
+            } catch (e) {
+              sendMessage("vpaidDestroyFailed");
+            }
+          }
+
+          function createVpaidObject(
+            vpaidSrc,
+            mandatoryVpaidMethodNameList,
+            subscribeToVpaidEventNameList
+          ) {
+            try {
+              var vpaidScript = window.document.createElement("script");
+
+              var vpaidOnErrorLoading = function () {
+                vpaidScript.removeEventListener("error", vpaidOnErrorLoading);
+                sendMessage("scriptNotLoaded");
+              };
+              var vpaidOnLoad = function () {
+                vpaidScript.removeEventListener("load", vpaidOnLoad);
+
+                var createAd = window["getVPAIDAd"];
+
+                if (!(typeof createAd === "function")) {
+                  sendMessage("vpaidObjectNotFound");
+                  return;
+                }
+
+                vpaidObject = createAd();
+
+                if (
+                  !checkIfVpaidrotocolValid(
+                    vpaidObject,
+                    mandatoryVpaidMethodNameList
+                  )
+                ) {
+                  sendMessage("invalidVpaid");
+                  return;
+                }
+
+                videoSlot = window.document.createElement("video");
+                videoSlot.classList.add("cnx-ad-slot", "cnx-ad-video-slot");
+                var defaultPosterURL = "";
+                if (defaultPosterURL) {
+                  videoSlot.setAttribute("poster", defaultPosterURL);
+                }
+                videoSlot.setAttribute("playsinline", "");
+                videoSlot.setAttribute("webkit-playsinline", "");
+                videoSlot.setAttribute("muted", "muted");
+                videoSlot.setAttribute("aria-label", "Advertisement");
+
+                videoSlot.addEventListener("timeupdate", onTimeUpdate);
+
+                videoSlot.muted = true;
+                videoSlot.volume = 0;
+
+                adSlot = window.document.createElement("div");
+                adSlot.classList.add("cnx-ad-slot");
+
+                adContainer = window.document.querySelector(".ad-element");
+                adContainer.appendChild(videoSlot);
+                adContainer.appendChild(adSlot);
+
+                createIframeMutationObserver(adContainer);
+
+                subscribeToVpaidEvents(subscribeToVpaidEventNameList);
+
+                sendMessage("adCreated");
+              };
+
+              vpaidScript.src = vpaidSrc;
+              vpaidScript.addEventListener("load", vpaidOnLoad);
+              vpaidScript.addEventListener("error", vpaidOnErrorLoading);
+
+              window.document.body.appendChild(vpaidScript);
+            } catch (e) {
+              sendMessage("loadAdError");
+            }
+          }
+
+          function toggleMutedAttribute(videoContainer, volume) {
+            if (volume > 0) {
+              videoContainer.removeAttribute("muted");
+              videoContainer.muted = false;
+            } else {
+              videoContainer.setAttribute("muted", "");
+              videoContainer.muted = true;
+            }
+          }
+
+          function onUnhandledRejection(event) {
+            sendMessage("unhandledRejection", {
+              reason: isRealObject(event) ? event.reason : null,
+            });
+          }
+
+          function createGeoScript(opts) {
+            let script = document.createElement("script");
+            opts.src ? (script.src = opts.src) : 0;
+            script.textContent = opts.code;
+            return script;
+          }
+
+          function loadGeoEdgeCode(geoedgeCodeForIframe, source) {
+            return new Promise((resolve) => {
+              if (geoedgeCodeForIframe) {
+                // get the config object + script url
+                let [config, url] = geoedgeCodeForIframe;
+                // create script for each
+
+                // set the config object
+                let configScript = createGeoScript({
+                  code: `window.grumi = ${JSON.stringify(config)};`,
+                });
+
+                // the the script url
+                let clientScript = createGeoScript({ src: url });
+                // notify when ready
+                clientScript.onload = function () {
+                  // the following line is only needed if msg.source !== self.parent
+                  // it tells the script which window it should send messages to, for block / report events notification
+                  window.grumiInstance.setTargetWindow(source);
+                  resolve();
+                };
+
+                clientScript.onerror = () =>
+                  reject(new Error("Failed to load geoedge client script"));
+
+                // excute the scripts: set the config first, then load the script
+                document.head.appendChild(configScript);
+                document.head.appendChild(clientScript);
+              } else {
+                resolve();
+              }
+            });
+          }
+
+          function onWindowMessage(event) {
+            if (!event.data) {
+              return;
+            }
+
+            if (source && source !== event.source) {
+              return;
+            }
+            if (origin && origin !== event.origin) {
+              return;
+            }
+
+            var type = event.data.type;
+            var iframeId = event.data.cnxIframeId;
+            var payload = event.data.payload;
+            var geoedgeCode = event.data.geoCode;
+
+            if (!type || !iframeId) {
+              return;
+            }
+
+            if (cnxIframeId && cnxIframeId !== iframeId) {
+              return;
+            }
+
+            switch (type) {
+              case "createAd": {
+                if (
+                  !payload ||
+                  !payload.vpaidSrc ||
+                  !payload.mandatoryVpaidMethodNameList ||
+                  !payload.subscribeToVpaidEventNameList
+                ) {
+                  sendMessage("createAdPayloadMissing");
+                  return;
+                }
+
+                if (!event.source) {
+                  sendMessage("sourceNotFound");
+                  return;
+                }
+                if (!event.origin) {
+                  sendMessage("originNotFound");
+                  return;
+                }
+
+                origin = event.origin;
+                source = event.source;
+                cnxIframeId = iframeId;
+
+                loadGeoEdgeCode(payload.geoedgeCodeForIframe, source).then(
+                  () => {
+                    // This function gets called whether or not geoedgeCodeForIframe was defined,
+                    // and only after any necessary scripts have been loaded if they were defined.
+                    createVpaidObject(
+                      payload.vpaidSrc,
+                      payload.mandatoryVpaidMethodNameList,
+                      payload.subscribeToVpaidEventNameList
+                    );
+                  }
+                );
+
+                break;
+              }
+              case "initAd": {
+                try {
+                  if (!payload || !payload.creativeData) {
+                    sendMessage("initAdPayloadMissing");
+                    return;
+                  }
+                  vpaidObject.initAd(
+                    payload.width,
+                    payload.height,
+                    payload.viewMode,
+                    payload.desireBitrate,
+                    payload.creativeData,
+                    {
+                      slot: adSlot,
+                      videoSlot: videoSlot,
+                    }
+                  );
+                } catch (e) {
+                  sendMessage("loadAdError");
+                }
+                break;
+              }
+              case "startAd": {
+                try {
+                  if (
+                    receivedVpaidEvents.has("AdImpression") &&
+                    !blockedVpaidEvents.has("AdImpression")
+                  ) {
+                    sendMessage("brokenImpressionHandle");
+                    blockedVpaidEvents.add("AdImpression");
+                    sendMessage("AdImpression");
+                  }
+                  vpaidObject.startAd();
+                } catch (e) {
+                  sendMessage("startAdError");
+                }
+                break;
+              }
+              case "stopAd": {
+                if (!vpaidObject) {
+                  sendMessage("alreadyAdStopped", payload);
+                  return;
+                }
+                var reason = "";
+                if (payload && payload.reason) {
+                  reason = payload.reason;
+                }
+                vpaidObject.stopAd(reason);
+                break;
+              }
+              case "resizeAd": {
+                if (!payload) {
+                  return;
+                }
+                vpaidObject.resizeAd(
+                  payload.width,
+                  payload.height,
+                  payload.viewMode
+                );
+                break;
+              }
+              case "pauseAd": {
+                vpaidObject.pauseAd();
+                break;
+              }
+              case "resumeAd": {
+                vpaidObject.resumeAd();
+
+                if (payload.os === "ios") {
+                  iosUnfreezeVideo(videoSlot);
+                }
+
+                break;
+              }
+              case "expandAd": {
+                vpaidObject.expandAd();
+                break;
+              }
+              case "collapseAd": {
+                vpaidObject.collapseAd();
+                break;
+              }
+              case "skipAd": {
+                vpaidObject.skipAd();
+                break;
+              }
+              case "setAdVolume": {
+                if (!payload) {
+                  return;
+                }
+
+                var volume = payload.volume;
+                // In case we have volume < 0 enforce mute on all video tags inside the adContainer
+                if (payload.volume <= 0) {
+                  startMuteEnforcer();
+                } else {
+                  stopMuteEnforcer();
+                }
+                if (videoSlot) {
+                  videoSlot.volume = volume;
+                  toggleMutedAttribute(videoSlot, volume);
+                }
+
+                vpaidObject.setAdVolume(volume);
+                break;
+              }
+              case "destroy": {
+                destroy();
+                break;
+              }
+            }
+          }
+
+          window.addEventListener("click", onWindowClick, true);
+          window.addEventListener("message", onWindowMessage);
+          window.addEventListener("unhandledrejection", onUnhandledRejection);
+          window.onerror = function (message, src, lineno, colno, error) {
+            sendMessage("errorInsideVpaid", {
+              message: message,
+              source: src,
+              lineno: lineno,
+              colno: colno,
+              error: error,
+            });
+          };
+
+          window.parent.postMessage({ event: "ready" }, "*");
+        } catch (e) {
+          source.postMessage(
+            {
+              type: "safeIframeTryCatch",
+              message: e.toString(),
+            },
+            origin
+          );
+        }
+      }).call(this);
+    </script>
+  
+
+<script src="cnx_data/vista.js"></script><iframe style="width: 0px !important; height: 0px !important; border: 0px !important; position: absolute !important; top: -10000px !important; left: -10000px !important;" src="a_data/a_data/a_002.html" class="_ntnrjf7826-hj"></iframe></body></html>

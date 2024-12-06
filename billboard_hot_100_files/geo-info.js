@@ -1,0 +1,1 @@
+var pmc_fastly_geo_data = {"city":"ann arbor","region":"MI","country":"US","continent":"NA","asn":"36375"}

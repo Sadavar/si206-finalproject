@@ -1,19 +1,10 @@
 
+import json
 import re
 import sqlite3
 from bs4 import BeautifulSoup
 import requests
 
-
-# def cleanBillboard(billboard_list):
-#     print("Cleaning Billboard Hot 100")
-#     # list of [id, title, artist]
-#     for data in billboard_list:
-#         prev_artist = data[1]
-#         new_artist = re.search("(.+)(?:\&\|,|Featuring)", prev_artist)
-#         print("prev_artist: ", prev_artist)
-#         print("new_artist: ", new_artist)
-#     return billboard_list
 
 def cleanBillboard(billboard_list):
     print("Cleaning Billboard Hot 100")
@@ -67,18 +58,22 @@ def save_billboard_data(billboard_list):
     # Limit the number of items to insert
     num_added = 0
     for track_name, artist_name in billboard_list[stored_tracks_count:]:
-        if num_added >= 25:
+        if num_added >= 3:
             break
         print(f"Adding {track_name} by {artist_name} to the database.")
+
         # Insert the artist if not already in the database
         c.execute('INSERT OR IGNORE INTO Artists (artist_name) VALUES (?)', (artist_name,))
+        if c.rowcount > 0:
+            num_added += 1
         # Get the artist_id
         c.execute('SELECT artist_id FROM Artists WHERE artist_name = ?', (artist_name,))
         artist_id = c.fetchone()[0]
         # Insert the track
         c.execute('INSERT OR IGNORE INTO BillboardTracks (artist_id, track_name) VALUES (?, ?)', (artist_id, track_name))
-        num_added += 1
-    
+        if c.rowcount > 0:
+            num_added += 1
+
     conn.commit()
     conn.close()
     print(f"Successfully saved {num_added} new items to the database.")

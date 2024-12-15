@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 import base64
@@ -59,7 +60,7 @@ def get_spotify_artist_data():
     
     num_added = 0
     for artist in artists[stored_artists_count:]:
-        if num_added >= 25:
+        if num_added >= 3:
             break
         print(f'Searching Spotify for {artist[0]}...')
         params = {
@@ -128,7 +129,7 @@ def get_billboard_track_spotify_data():
     num_added = 0
     for id in billboard_track_ids[stored_tracks_count:]:
         id = id[0]
-        if num_added >= 25:
+        if num_added >= 3:
             break
         # get track name
         c.execute('SELECT track_name FROM BillboardTracks WHERE billboard_track_id = ?', (id,))
@@ -154,7 +155,6 @@ def get_billboard_track_spotify_data():
             num_added += 1
         except:
             print('No data found for track:', track[0])
-        
     
     print(spotify_data)
     return spotify_data

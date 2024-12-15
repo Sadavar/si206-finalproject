@@ -1,0 +1,20 @@
+[
+    {
+        "highest_popularity_data": {
+            "artist_name": "Kendrick Lamar",
+            "popularity": 97
+        }
+    },
+    {
+        "lowest_popularity_data": {
+            "artist_name": "The Spinners",
+            "popularity": 61
+        }
+    },
+    {
+        "average_popularity_data": {
+            "artist_name": "Average ",
+            "popularity": 78.65217391304348
+        }
+    }
+]

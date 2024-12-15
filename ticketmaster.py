@@ -1,5 +1,6 @@
 
 
+import datetime
 import json
 import os
 import sqlite3
@@ -60,32 +61,69 @@ def get_us_music_events(api_key, pages):
 def save_ticketmaster_data(event_list):
     conn = sqlite3.connect('data.db')
     c = conn.cursor()
-    
+
     # get the number of already stored events
     c.execute('SELECT COUNT(*) FROM TicketmasterEvents')
     stored_events_count = c.fetchone()[0]
-    print("Stored events count:")
-    print(stored_events_count)
-    
+
     num_added = 0
     for event in event_list[stored_events_count:]:
-        if num_added >= 25:
+        if num_added >= 3:  
             break
-        event_name = event.get('event_name')
-        if not event.get('artist'):
-            artist = 'Unknown Artist'
-        else:
-            artist = event.get('artist', ['Unknown Artist'])[0]
-        venue = event.get('venue')
-        event_date = event.get('event_date')
-        
-        c.execute('''
-            INSERT INTO TicketmasterEvents (event_name, artist, venue, event_date)
-            VALUES (?, ?, ?, ?)
-        ''', (event_name, artist, venue, event_date))
-        num_added += 1
-              
 
+        # Extract event details
+        event_name = event.get('event_name', 'Unnamed Event')
+        artist_name = event.get('artist', ['Unknown Artist'])[0]
+        venue_name = event.get('venue', 'Unknown Venue')
+        event_date = event.get('event_date', '0000-00-00') 
+
+        # Ensure event_date is in YYYY-MM-DD format
+        try:
+            parsed_date = datetime.datetime.strptime(event_date, "%Y-%m-%d")
+            event_date = parsed_date.strftime("%Y-%m-%d") 
+        except ValueError:
+            print(f"Invalid date format for {event_name}: {event_date}. Skipping event.")
+            continue
+
+        # Insert or fetch artist ID
+        c.execute('SELECT artist_id FROM Artists WHERE artist_name = ?', (artist_name,))
+        artist_row = c.fetchone()
+        if artist_row:
+            artist_id = artist_row[0]
+        else:
+            c.execute('INSERT INTO Artists (artist_name) VALUES (?)', (artist_name,))
+            num_added += 1
+            artist_id = c.lastrowid
+
+        # Insert or fetch venue ID
+        c.execute('SELECT venue_name_id FROM Venues WHERE venue_name = ?', (venue_name,))
+        venue_row = c.fetchone()
+        if venue_row:
+            venue_name_id = venue_row[0]
+        else:
+            c.execute('INSERT INTO Venues (venue_name) VALUES (?)', (venue_name,))
+            num_added += 1
+            venue_name_id = c.lastrowid
+
+        # Insert or fetch event name ID
+        c.execute('SELECT event_name_id FROM Events WHERE event_name = ?', (event_name,))
+        event_row = c.fetchone()
+        if event_row:
+            event_name_id = event_row[0]
+        else:
+            c.execute('INSERT INTO Events (event_name) VALUES (?)', (event_name,))
+            num_added += 1
+            event_name_id = c.lastrowid
+
+        # Insert event into TicketmasterEvents
+        c.execute('''
+            INSERT INTO TicketmasterEvents (event_name_id, artist_id, venue_name_id, event_date)
+            VALUES (?, ?, ?, ?)
+        ''', (event_name_id, artist_id, venue_name_id, event_date))
+
+        num_added += 1
+    
+    # Commit the changes and close the connection
     conn.commit()
     conn.close()
 

@@ -63,8 +63,8 @@ def plot_top_10_spotify_artists_popularity():
     
     # Add labels and title
     plt.xlabel('Artist', fontsize=12)
-    plt.ylabel('Popularity', fontsize=12)
-    plt.title('Top 10 Billboard Artists by Spotify Popularity', fontsize=14)
+    plt.ylabel('Popularity Score', fontsize=12)
+    plt.title('Top 10 Billboard Artists by Spotify Popularity Score', fontsize=14)
     
     # Save plot image
     plt.savefig('top_10_spotify_artists_popularity.png')
@@ -78,17 +78,20 @@ def plot_ticketmaster_top3venues():
     conn = sqlite3.connect('data.db')
     c = conn.cursor()
     
-    # Get number of events per venue
+    # Get the top 3 venue_name_ids by number of events
     c.execute('''
-        SELECT venue, COUNT(*) as num_events
+        SELECT venue_name, COUNT(*)
         FROM TicketmasterEvents
-        GROUP BY venue
-        ORDER BY num_events DESC
+        JOIN Venues ON TicketmasterEvents.venue_name_id = Venues.venue_name_id
+        GROUP BY venue_name
+        ORDER BY COUNT(*) DESC
         LIMIT 3
     ''')
     
     data = c.fetchall()
     conn.close()
+    
+    print(data)
     
     # Extract the venue names and number of events
     venues = [row[0] for row in data]
@@ -101,10 +104,10 @@ def plot_ticketmaster_top3venues():
     # Add labels and title
     plt.xlabel('Venue', fontsize=12)
     plt.ylabel('Number of Events', fontsize=12)
-    plt.title('Top 5 Ticketmaster Venues by Number of Events', fontsize=14)
+    plt.title('Top 3 Ticketmaster Venues by Number of Events', fontsize=14)
     
     # Save plot image
-    plt.savefig('top_5_ticketmaster_venues.png')
+    plt.savefig('top_3_ticketmaster_venues.png')
     
     # Show the plot
     plt.tight_layout()
